@@ -12,12 +12,14 @@ class CodeSnippet:
 
 
 with open("ints_bf.json", 'r') as f:
-    INTS = {int(k): CodeSnippet(description=f"Set number {k}", code=v) for k, v in json.load(f).items()}
+    INTS = {int(k): CodeSnippet(description=f"Set number {k}", code="[-]"+v)
+            for k, v in json.load(f).items()}
 
 
 class CodeBuilder:
     def __init__(self):
         self.code_snippets = []
+        self.code_depth = 0
 
     def clear_cell(self):
         self.code_snippets.append(CodeSnippet("Clear Cell", "[-]"))
@@ -29,6 +31,23 @@ class CodeBuilder:
         self.code_snippets.append(CodeSnippet(f"Move {abs(offset)} cells {'right' if offset > 0 else 'left'}.",
                                               (">" if offset > 0 else "<") * abs(offset)))
 
+    def start_while(self):
+        self.code_depth += 1
+        self.code_snippets.append(CodeSnippet("Start 'while'.", '['))
+
+    def end_while(self):
+        assert self.code_depth > 0, "Mismatched ] (missing [)"
+        self.code_depth -= 1
+        self.code_snippets.append(CodeSnippet("End 'while'.", ']'))
+
+    def get_input(self, buffer_size: int = 1):
+        assert buffer_size >= 1, "Need positive buffer size."
+        self.code_snippets.append(CodeSnippet(f"Get {buffer_size} bytes of input.",
+                                              "," + ">,"*(buffer_size - 1)))
+
+    def output_char(self):
+        self.code_snippets.append(CodeSnippet(f"Output character.", '.'))
+
     def __str__(self):
         return "\n".join([
             pprint.pformat(self.code_snippets, indent=2),
@@ -36,6 +55,8 @@ class CodeBuilder:
             ])
 
     def compile(self):
+        assert self.code_depth == 0, "Unclosed [ (missing ])"
+
         code = ''.join([cs.code for cs in self.code_snippets])
 
         nullops = {
@@ -71,11 +92,17 @@ class CodeBuilder:
 
 if __name__ == '__main__':
     cb = CodeBuilder()
-    cb.move_pointer(1)
-    cb.set_value(157)
-    cb.move_pointer(1)
-    cb.set_value(3)
-    print(cb)
-    # compiled = cb.compile()
-    # tape = run_bf(compiled, framerate=2)
-    # print(tape)
+
+    cb.set_value(138)
+    cb.move_pointer(3)
+    cb.set_value(244)
+
+    compiled = cb.compile()
+
+    print("== COMPILED CODE ==")
+    line_length = 20
+    print("\n".join([compiled[i:i+line_length] for i in range(0, len(compiled), line_length)]))
+    print("===================")
+    tape = run_bf(compiled, framerate=1)
+    print("\n===================")
+    print("".join(tape.output_feed))

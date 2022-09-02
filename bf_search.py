@@ -54,15 +54,6 @@ def get_ints():
     return ints
 
 
-if not os.path.exists("ints_bf.json"):
-    INTS = get_ints()
-    with open("ints_bf.json", 'w') as f:
-        json.dump(INTS, f, indent=2)
-else:
-    with open("ints_bf.json", 'r') as f:
-        INTS = {int(k): v for k, v in json.load(f).items()}
-
-
 def write_buffer(buffer_data: List[int], clean=False, output=False):
     output_str = list(map(lambda x: f"{'' if clean else '[-]'}{INTS[x%256]}{'.' if output else ''}>", buffer_data))
     output_str = "".join(output_str)[:-1].replace("<>", '')
@@ -70,12 +61,11 @@ def write_buffer(buffer_data: List[int], clean=False, output=False):
 
 
 if __name__ == '__main__':
-    ords = list(map(ord, "Hello World!"))
-    ord_set = list(set(ords))
-    out_str = ">"+write_buffer(ords[::-1], clean=True) + "[.<]"
-    print(out_str)
-    tape = run_bf(out_str)
-
-    print(tape.tape_contents)
-    print(''.join(tape.output_feed))
+    if not os.path.exists("ints_bf.json"):
+        INTS = get_ints()
+        with open("ints_bf.json", 'w') as f:
+            json.dump(INTS, f, indent=2, sort_keys=True)
+    else:
+        with open("ints_bf.json", 'r') as f:
+            INTS = {int(k): v for k, v in json.load(f).items()}
 

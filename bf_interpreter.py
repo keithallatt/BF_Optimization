@@ -3,7 +3,7 @@ from typing import List
 
 # CONSTANTS FIRST
 INFINITE_TAPE = False
-TAPE_LENGTH = 16
+TAPE_LENGTH = 24
 CYCLIC_TAPE = True
 
 
@@ -30,7 +30,9 @@ class BFTape:
             self.pointer_index %= TAPE_LENGTH
 
     def modify(self, c):
-        value = self.tape_contents.pop(self.pointer_index) if self.pointer_index in self.tape_contents.keys() else 0
+        value = 0
+        if self.pointer_index in self.tape_contents.keys():
+            value = self.tape_contents.pop(self.pointer_index)
         value += c
         value %= 256
         if value:
@@ -40,7 +42,7 @@ class BFTape:
         while not self.input_feed:
             _in = input('> ')
             self.input_feed += list(map(ord, _in))
-        self.tape_contents[self.pointer_index] = self.input_feed.pop()
+        self.tape_contents[self.pointer_index] = self.input_feed.pop(0)
         if not self.tape_contents[self.pointer_index]:
             self.tape_contents.pop(self.pointer_index)
 
