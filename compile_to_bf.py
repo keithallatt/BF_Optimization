@@ -27,6 +27,10 @@ class CodeBuilder:
     def set_value(self, value):
         self.code_snippets.append(INTS[value])
 
+    def add_value(self, value):
+        value %= 256
+        self.code_snippets.append(CodeSnippet(f"Add {value}", "+" * value if value <= 128 else "-" * (256 - value)))
+
     def move_pointer(self, offset):
         self.code_snippets.append(CodeSnippet(f"Move {abs(offset)} cells {'right' if offset > 0 else 'left'}.",
                                               (">" if offset > 0 else "<") * abs(offset)))
@@ -93,9 +97,41 @@ class CodeBuilder:
 if __name__ == '__main__':
     cb = CodeBuilder()
 
-    cb.set_value(138)
-    cb.move_pointer(3)
-    cb.set_value(244)
+    cb.set_value(5)
+    cb.move_pointer(1)
+    cb.set_value(7)
+    cb.move_pointer(-1)
+
+    cb.start_while()
+
+    cb.move_pointer(1)
+    cb.start_while()
+    cb.move_pointer(1)
+    cb.add_value(1)
+    cb.move_pointer(1)
+    cb.add_value(1)
+    cb.move_pointer(-2)
+    cb.add_value(-1)
+    cb.end_while()
+
+    cb.move_pointer(1)
+
+    cb.start_while()
+    cb.move_pointer(-1)
+    cb.add_value(1)
+    cb.move_pointer(1)
+    cb.add_value(-1)
+    cb.end_while()
+
+    cb.move_pointer(-2)
+    cb.add_value(-1)
+    cb.end_while()
+
+    cb.move_pointer(1)
+    cb.clear_cell()
+    cb.move_pointer(2)
+
+
 
     compiled = cb.compile()
 
@@ -103,6 +139,6 @@ if __name__ == '__main__':
     line_length = 20
     print("\n".join([compiled[i:i+line_length] for i in range(0, len(compiled), line_length)]))
     print("===================")
-    tape = run_bf(compiled, framerate=1)
+    tape = run_bf(compiled, framerate=3)
     print("\n===================")
     print("".join(tape.output_feed))
